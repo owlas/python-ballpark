@@ -116,10 +116,9 @@ def business(values, precision=3, prefix=True, prefixes=SI, statistic=median, de
     1,175,125 into `1180K` and 11,234 into `11K` (instead of 1175K and
     11.2K respectively.) This can help enormously with readability.
 
-    If the reference point is equal to or larger than E15 or
-    equal to or smaller than E-15, E12 and E-12 become the
-    reference point instead. (Petas and femtos are too
-    unfamiliar to people to be easily comprehended.)
+    If the reference point is equal to or larger than the available
+    prefixes then the lowest or greatest prefixes become the reference
+    point instead.
     """
 
     reference = statistic(values)
@@ -128,12 +127,14 @@ def business(values, precision=3, prefix=True, prefixes=SI, statistic=median, de
         return upcast([''] * len(values), values)
 
     exponent = order(reference)
-    e = bound(exponent - exponent % 3, -12, 12)
+    lower_bound = min(prefixes.keys())
+    upper_bound = max(prefixes.keys())
+    e = bound(exponent - exponent % 3, lower_bound, upper_bound)
     # the amount of decimals is the precision minus the amount of digits
     # before the decimal point, which is one more than the relative order
     # of magnitude (for example, 10^5 can be represented as 100K, with
     # those three digits representing place values of 10^3, 10^4 and 10^5)
-    d = precision - (1 + exponent - e)
+    d = max(0, precision - (1 + exponent - e))
 
     prefix = prefixes[e]
 
